@@ -8,8 +8,7 @@ import (
 	"strings"
 )
 
-func main() {
-	fmt.Println("=== Система управления доступом на основе ролей (RBAC) ===")
+func Printhelp() {
 	fmt.Println("Доступные команды:")
 	fmt.Println("  init                           - Инициализация системы")
 	fmt.Println("  create_role <имя_роли>         - Создать новую роль")
@@ -21,6 +20,10 @@ func main() {
 	fmt.Println("  merge_roles <новая_роль> <стратегия> <роли...> - Объединить роли")
 	fmt.Println("  change_role <user_id> <новая_роль> - Изменить роль пользователя")
 	fmt.Println("  exit                           - Выйти из программы")
+}
+func main() {
+	fmt.Println("=== Система управления доступом на основе ролей (RBAC) ===")
+	Printhelp()
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -42,6 +45,8 @@ func main() {
 		args = args[1:]
 
 		switch command {
+		case "help":
+			Printhelp()
 		case "init":
 			commands.Init()
 		case "create_role":
