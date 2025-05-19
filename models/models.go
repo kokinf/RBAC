@@ -15,15 +15,15 @@ type Object struct {
 
 // Разрешение (действие над объектом)
 type Permission struct {
-	ObjectID string `json:"object_id"`
+	ObjectID string `json:"object_id"` // Используется ObjectID вместо ResourceID
 	Action   string `json:"action"`
 }
 
 // Роль (набор разрешений + наследование)
 type Role struct {
-	Name            string       `json:"name"`
+	Name            string       `json:"name"` // Используется как идентификатор
 	Permissions     []Permission `json:"permissions"`
-	ParentRoleNames []string     `json:"parent_roles"`
+	ParentRoleNames []string     `json:"parent_role_names"` // Используется ParentRoleNames
 }
 
 // Основная структура данных

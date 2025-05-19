@@ -4,6 +4,7 @@ import (
 	"RBAC/models"
 	"RBAC/storage"
 	"fmt"
+	"strings"
 )
 
 func AssignPermission(roleName, objectID, action string) {
@@ -13,38 +14,57 @@ func AssignPermission(roleName, objectID, action string) {
 		return
 	}
 
-	roleIdx := -1
+	// Находим роль
+	roleIndex := -1
 	for i, role := range data.Roles {
 		if role.Name == roleName {
-			roleIdx = i
+			roleIndex = i
 			break
 		}
 	}
 
-	if roleIdx == -1 {
+	if roleIndex == -1 {
 		fmt.Printf("Роль '%s' не найдена\n", roleName)
 		return
 	}
 
-	for _, perm := range data.Roles[roleIdx].Permissions {
-		if perm.ObjectID == objectID && perm.Action == action {
-			fmt.Printf("Разрешение '%s:%s' уже существует для роли '%s'\n", objectID, action, roleName)
-			return
+	// Проверяем существующие разрешения для этого объекта
+	existingIndex := -1
+	for i, perm := range data.Roles[roleIndex].Permissions {
+		if perm.ObjectID == objectID {
+			existingIndex = i
+			break
 		}
 	}
 
-	newPerm := models.Permission{
-		ObjectID: objectID,
-		Action:   action,
-	}
+	// Если разрешение для этого объекта уже существует - объединяем действия
+	if existingIndex >= 0 {
+		existingPerm := &data.Roles[roleIndex].Permissions[existingIndex]
 
-	data.Roles[roleIdx].Permissions = append(data.Roles[roleIdx].Permissions, newPerm)
+		// Проверяем, не существует ли уже такое действие
+		if strings.Contains(existingPerm.Action, action) {
+			fmt.Printf("Действие '%s' уже существует для объекта '%s' в роли '%s'\n",
+				action, objectID, roleName)
+			return
+		}
+
+		// Объединяем действия через запятую
+		existingPerm.Action = strings.Join([]string{existingPerm.Action, action}, ",")
+		fmt.Printf("Действие '%s' добавлено к существующим разрешениям для объекта '%s' в роли '%s'\n",
+			action, objectID, roleName)
+	} else {
+		// Создаем новое разрешение
+		newPermission := models.Permission{
+			ObjectID: objectID,
+			Action:   action,
+		}
+		data.Roles[roleIndex].Permissions = append(data.Roles[roleIndex].Permissions, newPermission)
+		fmt.Printf("Новое разрешение '%s:%s' создано для роли '%s'\n",
+			objectID, action, roleName)
+	}
 
 	err = storage.SaveData(data)
 	if err != nil {
 		fmt.Println("Ошибка сохранения:", err)
-		return
 	}
-
-	fmt.Printf("Разрешение '%s:%s' добавлено для роли '%s'\n", objectID, action, roleName)
 }
